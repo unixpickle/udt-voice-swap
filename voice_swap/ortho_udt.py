@@ -50,9 +50,9 @@ def nearest_neighbors(source, target, batch_size=128):
         source_norms = np.sum(source * source, axis=-1)[:, None]
         target_norms = np.sum(batch * batch, axis=-1)[None]
         dots = source @ batch.T
-        distances = source_norms + target_norms - 2 * dots
-        min_indices = np.argmin(distances, axis=-1)
-        min_values = np.min(distances, axis=-1)
+        distance_mat = source_norms + target_norms - 2 * dots
+        min_indices = np.argmin(distance_mat, axis=-1)
+        min_values = np.min(distance_mat, axis=-1)
         indices = np.where(min_values < distances, min_indices + i, indices)
         distances = np.minimum(distances, min_values)
     return indices
