@@ -30,6 +30,7 @@ def ortho_udt(source, target, tol=1e-4):
         u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
         new_solution = u @ vh
         if np.mean((new_solution - solution) ** 2) < tol:
+            solution = new_solution
             break
         solution = new_solution
     return solution
