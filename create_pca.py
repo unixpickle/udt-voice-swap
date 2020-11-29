@@ -10,9 +10,9 @@ from voice_swap.data import ChunkDataset
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample_rate", type=int, default=22050)
-    parser.add_argument("--chunk_size", type=int, default=22050 * 2)
+    parser.add_argument("--chunk_size", type=int, default=1000)
     parser.add_argument("--num_chunks", type=int, default=100000)
-    parser.add_argument("--pca_dim", type=int, default=4096)
+    parser.add_argument("--pca_dim", type=int, default=200)
     parser.add_argument("--output_path", type=str, default="pca_components.npy")
     parser.add_argument("data_dir", type=str)
     args = parser.parse_args()
