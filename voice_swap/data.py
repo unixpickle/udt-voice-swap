@@ -123,8 +123,12 @@ class ChunkReader:
         return res
 
     def close(self):
-        os.close(self._audio_reader)
-        self._ffmpeg_proc.wait()
+        if not self._done:
+            self._reader.close()
+            self._ffmpeg_proc.wait()
+        else:
+            self._ffmpeg_proc.wait()
+            self._reader.close()
 
 
 class ChunkWriter:
