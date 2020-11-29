@@ -20,6 +20,8 @@ def main():
     args = parser.parse_args()
 
     pca_vecs = np.load(args.pca_vecs)
+    pca_vecs = pca_vecs / np.sqrt(np.sum(pca_vecs ** 2, axis=-1, keepdims=True))
+
     reader = ChunkReader(args.input_file, args.sample_rate)
     writer = ChunkWriter(args.output_file, args.sample_rate)
 

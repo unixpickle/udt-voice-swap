@@ -20,7 +20,7 @@ def ortho_udt(source, target, tol=1e-4):
     """
     solution = np.eye(source.shape[1])
     while True:
-        new_source = source @ solution.T
+        new_source = source @ solution
         source_neighbors = nearest_neighbors(new_source, target)
         target_neighbors = nearest_neighbors(target, new_source)
 

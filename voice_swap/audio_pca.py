@@ -18,8 +18,8 @@ def audio_chunk_pca(chunks, num_vecs):
         cov_mat += chunk[:, None] @ chunk[None]
         count += 1.0
     cov_mat /= count
-    u, _, _ = np.linalg.svd(cov_mat)
-    return u.T[:num_vecs]
+    u, sigma, _ = np.linalg.svd(cov_mat)
+    return u.T[:num_vecs] / np.sqrt(sigma[:num_vecs, None])
 
 
 def audio_chunk_pca_fix_skew(chunks, pca_vecs):
@@ -60,6 +60,7 @@ def audio_chunk_pca_mse(chunks, pca_vecs):
     :param pca_vecs: an [N x D] array of PCA vectors.
     :return: an MSE estimate, averaged over dimensions and chunks.
     """
+    pca_vecs = pca_vecs / np.sqrt(np.sum(pca_vecs ** 2, axis=-1, keepdims=True))
     total_mse = 0.0
     count = 0.0
     for chunk in chunks:
