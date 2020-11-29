@@ -22,6 +22,36 @@ def audio_chunk_pca(chunks, num_vecs):
     return u.T[:num_vecs]
 
 
+def audio_chunk_pca_fix_skew(chunks, pca_vecs):
+    """
+    Adjust the sign of any PCA vectors wich negative skew.
+
+    :param chunks: an iterator (with a length) over audio chunks.
+    :param pca_vecs: an [N x D] array of PCA vectors.
+    :return: a new [N x D] array of PCA vectors.
+    """
+    it = iter(chunks)
+
+    # Compute the mean using the first half of the data.
+    mean_count = len(chunks) // 2
+    dot_sum = None
+    for i in range(mean_count):
+        chunk = next(it)
+        local_dots = (pca_vecs @ chunk[:, None]).flatten()
+        if dot_sum is None:
+            dot_sum = local_dots
+        else:
+            dot_sum += local_dots
+    dot_mean = dot_sum / mean_count
+
+    # Now that we have a mean, we can compute the skew efficiently.
+    skewness = np.zeros_like(dot_sum)
+    for chunk in it:
+        skewness += ((pca_vecs @ chunk[:, None]).flatten() - dot_mean) ** 3
+
+    return np.where((skewness > 0)[:, None], pca_vecs, -pca_vecs)
+
+
 def audio_chunk_pca_mse(chunks, pca_vecs):
     """
     Compute the MSE of the PCA-compressed chunks.

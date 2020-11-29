@@ -27,6 +27,9 @@ def main():
     print("Computing PCA...")
     pca_vecs = audio_pca.audio_chunk_pca(tqdm(data), args.pca_dim)
 
+    print("Fixing skew...")
+    pca_vecs = audio_pca.audio_chunk_pca_fix_skew(tqdm(data), pca_vecs)
+
     print(f"Saving to: {args.output_path}")
     np.save(args.output_path, pca_vecs)
 
