@@ -6,15 +6,13 @@ https://arxiv.org/abs/2007.12568.
 import numpy as np
 
 
-def ortho_udt(source, target, tol=1e-4):
+def ortho_udt(source, target):
     """
     Compute an orthogonal matrix that translates from a source domain to a
     target domain.
 
     :param source: an [N x D] array of source vectors.
     :param target: an [N x D] array of target vectors.
-    :param tol: the minimum amount that the solution can change and still be
-                considered not converged.
     :return: a [D x D] orthogonal matrix that takes vectors from the source
              and produces vectors from the target.
     """
@@ -29,8 +27,7 @@ def ortho_udt(source, target, tol=1e-4):
         target_vecs = target[source_neighbors[use_sources]]
         u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
         new_solution = u @ vh
-        if np.mean((new_solution - solution) ** 2) < tol:
-            solution = new_solution
+        if np.allclose(solution, new_solution):
             break
         solution = new_solution
     return solution
