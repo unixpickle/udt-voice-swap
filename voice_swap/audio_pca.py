@@ -10,15 +10,10 @@ def audio_chunk_pca(chunks, num_vecs):
     :return: a 2-D numpy array, where the outer dimension is the number of PCA
              vectors, and the inner dimension is the chunk size.
     """
-    cov_mat = None
-    count = 0.0
+    cov = OuterMean()
     for chunk in chunks:
-        if cov_mat is None:
-            cov_mat = np.zeros([len(chunk), len(chunk)], dtype=chunk.dtype)
-        cov_mat += chunk[:, None] @ chunk[None]
-        count += 1.0
-    cov_mat /= count
-    u, sigma, _ = np.linalg.svd(cov_mat)
+        cov.add(chunk)
+    u, sigma, _ = np.linalg.svd(cov.mean())
     return u.T[:num_vecs] / np.sqrt(sigma[:num_vecs, None])
 
 
@@ -68,3 +63,35 @@ def audio_chunk_pca_mse(chunks, pca_vecs):
         total_mse += float(np.mean((proj - chunk) ** 2))
         count += 1.0
     return total_mse / count
+
+
+class OuterMean:
+    def __init__(self, batch_size=128):
+        self.batch_size = batch_size
+        self._buffer = None
+        self._cov = None
+        self._count = 0
+        self._buffer_count = 0
+
+    def mean(self):
+        return self._cov
+
+    def add(self, vec):
+        if self._buffer is None:
+            self._buffer = np.zeros([self.batch_size, len(vec)], dtype=vec.dtype)
+            self._cov = np.zeros([len(vec)] * 2, dtype=vec.dtype)
+        self._buffer[self._buffer_count] = vec
+        self._buffer_count += 1
+        if self._buffer_count == self.batch_size:
+            self.flush()
+
+    def flush(self):
+        if not self._buffer_count:
+            return
+        buf = self._buffer[: self._buffer_count]
+        outer = buf.T @ buf
+        self._cov += (outer - self._cov * self._buffer_count) / (
+            self._count + self._buffer_count
+        )
+        self._count += self._buffer_count
+        self._buffer_count = 0
