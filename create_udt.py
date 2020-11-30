@@ -35,8 +35,6 @@ def main():
         for pca, data_dir in [(pca_1, args.data_dir_1), (pca_2, args.data_dir_2)]
     ]
 
-    target = source
-
     print("Performing orthogonal UDT...")
     matrix = ortho_udt(source, target)
 
