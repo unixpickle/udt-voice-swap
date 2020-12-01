@@ -18,6 +18,7 @@ def ortho_udt(source, target, verbose=False):
              and produces vectors from the target.
     """
     solution = np.eye(source.shape[1])
+    num_iters = 0
     while True:
         new_source = source @ solution
         source_neighbors = nearest_neighbors(new_source, target)
@@ -28,12 +29,13 @@ def ortho_udt(source, target, verbose=False):
         target_vecs = target[source_neighbors[use_sources]]
         u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
         new_solution = u @ vh
+        num_iters += 1
         if verbose:
             num_used = np.sum(use_sources)
             uniq_targets = len(set(source_neighbors))
             uniq_sources = len(set(target_neighbors))
             print(
-                f"used={num_used} uniq_targets={uniq_targets} uniq_sources={uniq_sources}"
+                f"iter {num_iters}: used={num_used} uniq_targets={uniq_targets} uniq_sources={uniq_sources}"
             )
         if np.allclose(solution, new_solution):
             break
