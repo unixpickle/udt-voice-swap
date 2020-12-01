@@ -6,13 +6,14 @@ https://arxiv.org/abs/2007.12568.
 import numpy as np
 
 
-def ortho_udt(source, target):
+def ortho_udt(source, target, verbose=False):
     """
     Compute an orthogonal matrix that translates from a source domain to a
     target domain.
 
     :param source: an [N x D] array of source vectors.
     :param target: an [N x D] array of target vectors.
+    :param verbose: if True, log information during optimization.
     :return: a [D x D] orthogonal matrix that takes vectors from the source
              and produces vectors from the target.
     """
@@ -27,6 +28,13 @@ def ortho_udt(source, target):
         target_vecs = target[source_neighbors[use_sources]]
         u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
         new_solution = u @ vh
+        if verbose:
+            num_used = np.sum(use_sources)
+            uniq_targets = len(set(source_neighbors))
+            uniq_sources = len(set(target_neighbors))
+            print(
+                f"used={num_used} uniq_targets={uniq_targets} uniq_sources={uniq_sources}"
+            )
         if np.allclose(solution, new_solution):
             break
         solution = new_solution

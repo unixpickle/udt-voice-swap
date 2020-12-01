@@ -36,7 +36,7 @@ def main():
     ]
 
     print("Performing orthogonal UDT...")
-    matrix = ortho_udt(source, target)
+    matrix = ortho_udt(source, target, verbose=True)
 
     print("Saving full matrix...")
     pca_2 /= np.sum(pca_2 ** 2, axis=-1, keepdims=True)
