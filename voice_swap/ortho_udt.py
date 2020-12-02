@@ -6,7 +6,7 @@ https://arxiv.org/abs/2007.12568.
 import numpy as np
 
 
-def ortho_udt(source, target, verbose=False):
+def ortho_udt(source, target, verbose=False, no_cycle_check=False):
     """
     Compute an orthogonal matrix that translates from a source domain to a
     target domain.
@@ -14,6 +14,7 @@ def ortho_udt(source, target, verbose=False):
     :param source: an [N x D] array of source vectors.
     :param target: an [N x D] array of target vectors.
     :param verbose: if True, log information during optimization.
+    :param no_cycle_check: if True, don't enforce cycle consistency.
     :return: a [D x D] orthogonal matrix that takes vectors from the source
              and produces vectors from the target.
     """
@@ -25,8 +26,15 @@ def ortho_udt(source, target, verbose=False):
         target_neighbors = nearest_neighbors(target, new_source)
 
         use_sources = target_neighbors[source_neighbors] == np.arange(len(new_source))
-        source_vecs = source[use_sources]
-        target_vecs = target[source_neighbors[use_sources]]
+
+        if no_cycle_check:
+            # TODO: go the other direction as well.
+            source_vecs = source
+            target_vecs = target[source_neighbors]
+        else:
+            source_vecs = source[use_sources]
+            target_vecs = target[source_neighbors[use_sources]]
+
         u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
         new_solution = u @ vh
         num_iters += 1
