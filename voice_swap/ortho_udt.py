@@ -27,9 +27,10 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False):
         use_sources = target_neighbors[source_neighbors] == np.arange(len(new_source))
 
         if no_cycle_check:
-            # TODO: go the other direction as well.
-            source_vecs = source
-            target_vecs = target[source_neighbors]
+            source_vecs = np.concatenate([source, target], axis=0)
+            target_vecs = np.concatenate(
+                [target[source_neighbors], source[target_neighbors]], axis=0
+            )
         else:
             source_vecs = source[use_sources]
             target_vecs = target[source_neighbors[use_sources]]
