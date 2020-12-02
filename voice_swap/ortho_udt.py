@@ -22,8 +22,7 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False):
     num_iters = 0
     while True:
         new_source = source @ solution
-        source_neighbors = nearest_neighbors(new_source, target)
-        target_neighbors = nearest_neighbors(target, new_source)
+        source_neighbors, target_neighbors = nearest_neighbors(new_source, target)
 
         use_sources = target_neighbors[source_neighbors] == np.arange(len(new_source))
 
@@ -54,13 +53,15 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False):
 def nearest_neighbors(source, target, batch_size=128):
     """
     For each source vector, compute the target vector that is nearest to the
-    source vector.
+    source vector, and vice versa.
 
-    :return: a 1-D array of integers, giving the index of a target vector for
-             each source vector.
+    :return: a tuple (source_indices, target_indices), both 1-D arrays of
+             integers, giving the index of a target or source vector for each
+             source or target vector.
     """
     indices = np.zeros([len(source)], dtype=np.int)
     distances = np.inf * np.ones([len(source)], dtype=source.dtype)
+    target_indices = []
     for i in range(0, len(target), batch_size):
         batch = target[i : i + batch_size]
         source_norms = np.sum(source * source, axis=-1)[:, None]
@@ -71,4 +72,5 @@ def nearest_neighbors(source, target, batch_size=128):
         min_values = np.min(distance_mat, axis=-1)
         indices = np.where(min_values < distances, min_indices + i, indices)
         distances = np.minimum(distances, min_values)
-    return indices
+        target_indices.append(np.argmin(distance_mat, axis=0))
+    return indices, np.concatenate(target_indices, axis=0)
