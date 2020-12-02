@@ -6,7 +6,7 @@ https://arxiv.org/abs/2007.12568.
 import numpy as np
 
 
-def ortho_udt(source, target, verbose=False, no_cycle_check=False):
+def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=None):
     """
     Compute an orthogonal matrix that translates from a source domain to a
     target domain.
@@ -15,6 +15,7 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False):
     :param target: an [N x D] array of target vectors.
     :param verbose: if True, log information during optimization.
     :param no_cycle_check: if True, don't enforce cycle consistency.
+    :param max_iters: if specified, the maximum iteration count.
     :return: a [D x D] orthogonal matrix that takes vectors from the source
              and produces vectors from the target.
     """
@@ -45,7 +46,7 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False):
             print(
                 f"iter {num_iters}: used={num_used} uniq_targets={uniq_targets} uniq_sources={uniq_sources}"
             )
-        if np.allclose(solution, new_solution):
+        if np.allclose(solution, new_solution) or num_iters == max_iters:
             break
         solution = new_solution
     return solution
