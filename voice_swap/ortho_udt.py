@@ -4,6 +4,7 @@ https://arxiv.org/abs/2007.12568.
 """
 
 import numpy as np
+from tqdm.auto import tqdm
 
 
 def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=None):
@@ -23,7 +24,11 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=Non
     num_iters = 0
     while True:
         new_source = source @ solution
-        source_neighbors, target_neighbors = nearest_neighbors(new_source, target)
+        if verbose:
+            print("Computing neighbors...")
+        source_neighbors, target_neighbors = nearest_neighbors(
+            new_source, target, verbose=verbose
+        )
 
         use_sources = target_neighbors[source_neighbors] == np.arange(len(new_source))
 
@@ -52,7 +57,7 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=Non
     return solution
 
 
-def nearest_neighbors(source, target, batch_size=128):
+def nearest_neighbors(source, target, batch_size=128, verbose=False):
     """
     For each source vector, compute the target vector that is nearest to the
     source vector, and vice versa.
@@ -64,7 +69,10 @@ def nearest_neighbors(source, target, batch_size=128):
     indices = np.zeros([len(source)], dtype=np.int)
     distances = np.inf * np.ones([len(source)], dtype=source.dtype)
     target_indices = []
-    for i in range(0, len(target), batch_size):
+    batches = range(0, len(target), batch_size)
+    if verbose:
+        batches = tqdm(batches)
+    for i in batches:
         batch = target[i : i + batch_size]
         source_norms = np.sum(source * source, axis=-1)[:, None]
         target_norms = np.sum(batch * batch, axis=-1)[None]
