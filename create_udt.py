@@ -12,6 +12,8 @@ def main():
     parser.add_argument("--sample_rate", type=int, default=22050)
     parser.add_argument("--num_chunks", type=int, default=20000)
     parser.add_argument("--output_path", type=str, default="udt_rotation.npy")
+    parser.add_argument("--no_cycle_check", action="store_true", default=False)
+    parser.add_argument("--max_iters", type=int, default=50)
     parser.add_argument("pca_1", type=str)
     parser.add_argument("data_dir_1", type=str)
     parser.add_argument("pca_2", type=str)
@@ -36,7 +38,13 @@ def main():
     ]
 
     print("Performing orthogonal UDT...")
-    matrix = ortho_udt(source, target, verbose=True)
+    matrix = ortho_udt(
+        source,
+        target,
+        verbose=True,
+        no_cycle_check=args.no_cycle_check,
+        max_iters=args.max_iters,
+    )
 
     print("Saving full matrix...")
     pca_2 /= np.sum(pca_2 ** 2, axis=-1, keepdims=True)
