@@ -65,6 +65,30 @@ def audio_chunk_pca_mse(chunks, pca_vecs):
     return total_mse / count
 
 
+def audio_chunks_apply_pca(chunks, pca_vecs, batch_size=128):
+    """
+    Iterate over transformed audio chunks as (chunk, pca_chunk).
+
+    Automatically batches matrix operations for faster computation.
+    """
+    batch = np.zeros([batch_size, pca_vecs.shape[1]], dtype=pca_vecs.dtype)
+    batch_idx = 0
+
+    def flush_batch(batch):
+        if len(batch):
+            transformed = batch @ pca_vecs.T
+            yield from zip(batch, transformed)
+
+    for chunk in chunks:
+        batch[batch_idx] = chunk
+        batch_idx += 1
+        if batch_idx == len(batch):
+            yield from flush_batch(batch)
+            batch_idx = 0
+
+    yield from flush_batch(batch[:batch_idx])
+
+
 class OuterMean:
     def __init__(self, batch_size=128):
         self.batch_size = batch_size

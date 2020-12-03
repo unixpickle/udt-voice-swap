@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 from tqdm.auto import tqdm
 
+from voice_swap.audio_pca import audio_chunks_apply_pca
 from voice_swap.data import ChunkDataset
 from voice_swap.ortho_udt import ortho_udt
 
@@ -26,11 +27,14 @@ def main():
     source, target = [
         np.stack(
             [
-                (pca @ chunk[:, None]).flatten()
-                for chunk in tqdm(
-                    ChunkDataset(
-                        data_dir, args.sample_rate, pca.shape[1], args.num_chunks
-                    )
+                transformed
+                for _, transformed in audio_chunks_apply_pca(
+                    tqdm(
+                        ChunkDataset(
+                            data_dir, args.sample_rate, pca.shape[1], args.num_chunks
+                        )
+                    ),
+                    pca,
                 )
             ]
         )
