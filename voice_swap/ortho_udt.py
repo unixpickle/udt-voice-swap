@@ -73,7 +73,7 @@ def nearest_neighbors(source, target, batch_size=128, verbose=False):
             return _nearest_neighbors_torch(
                 source, target, batch_size=batch_size, verbose=verbose
             )
-    except ImportError:
+    except ModuleNotFoundError:
         pass
 
     indices = np.zeros([len(source)], dtype=np.int)
