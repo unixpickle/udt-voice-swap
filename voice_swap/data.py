@@ -50,7 +50,7 @@ class ChunkDataset:
 
                     while True:
                         chunk = reader.read(self.chunk_size)
-                        if chunk is None or len(chunk) < self.chunk_size:
+                        if chunk is None:
                             break
                         yield chunk
                         counter += 1
