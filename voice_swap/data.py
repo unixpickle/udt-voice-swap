@@ -43,7 +43,7 @@ class ChunkDataset:
             paths = self.paths.copy()
             random.shuffle(paths)
             for path in paths:
-                reader = ChunkReader(path, self.sample_rate)
+                reader = MFCCReader(path, self.sample_rate)
                 try:
                     # Random misalignment by up to the chunk size.
                     reader.read(random.randrange(self.chunk_size))
@@ -196,6 +196,8 @@ class MFCCReader(ChunkReader):
 
     def read(self, chunk_size):
         buf = super().read(chunk_size)
+        if buf is None or len(buf) < chunk_size:
+            return None
         fft_size = _best_fft_size(self.sample_rate)
         coeffs = mfcc(
             y=buf,
