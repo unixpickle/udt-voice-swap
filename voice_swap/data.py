@@ -46,7 +46,7 @@ class ChunkDataset:
                 reader = MFCCReader(path, self.sample_rate)
                 try:
                     # Random misalignment by up to the chunk size.
-                    reader.read(random.randrange(self.chunk_size))
+                    reader.read_raw(random.randrange(self.chunk_size))
 
                     while True:
                         chunk = reader.read(self.chunk_size)
@@ -112,17 +112,21 @@ class ChunkReader:
                  where each sample is in the range [-1, 1].
                  When there are no more samples left, None is returned.
         """
+        buf = self.read_raw(chunk_size)
+        if buf is None:
+            return None
+        return np.frombuffer(buf, dtype="int16").astype("float32") / (2 ** 15)
+
+    def read_raw(self, chunk_size):
         if self._done:
             return None
         buffer_size = chunk_size * 2
         buf = self._reader.read(buffer_size)
-        if not len(buf):
-            self._done = True
-            return None
-        res = np.frombuffer(buf, dtype="int16").astype("float32") / (2 ** 15)
         if len(buf) < buffer_size:
             self._done = True
-        return res
+        if not len(buf):
+            return None
+        return buf
 
     def close(self):
         if not self._done:
