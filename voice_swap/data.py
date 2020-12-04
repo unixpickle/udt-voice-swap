@@ -6,6 +6,8 @@ import os
 import random
 import subprocess
 
+from librosa.feature import mfcc
+from librosa.feature.inverse import mfcc_to_audio
 import numpy as np
 
 
@@ -185,3 +187,46 @@ class ChunkWriter:
     def close(self):
         self._writer.close()
         self._ffmpeg_proc.wait()
+
+
+class MFCCReader(ChunkReader):
+    """
+    A ChunkReader that computes MFCCs for every chunk of audio.
+    """
+
+    def read(self, chunk_size):
+        buf = super().read(chunk_size)
+        fft_size = _best_fft_size(self.sample_rate)
+        coeffs = mfcc(
+            y=buf,
+            sr=self.sample_rate,
+            n_mfcc=128,
+            n_fft=fft_size,
+            hop_length=fft_size // 2,
+            n_mels=128,
+        )
+        return coeffs.flatten()
+
+
+class MFCCWriter(ChunkWriter):
+    """
+    A ChunkWriter that decodes MFCCs for every chunk of audio.
+    """
+
+    def write(self, chunk):
+        fft_size = _best_fft_size(self.sample_rate)
+        converted = mfcc_to_audio(
+            chunk.reshape([128, -1]),
+            sr=self.sample_rate,
+            n_fft=fft_size,
+            hop_length=fft_size // 2,
+            n_mels=128,
+        )
+        super().write(converted)
+
+
+def _best_fft_size(sample_rate):
+    if sample_rate < 44100:
+        return 1024
+    else:
+        return 2048
