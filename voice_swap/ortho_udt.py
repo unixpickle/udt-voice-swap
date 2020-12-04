@@ -101,6 +101,7 @@ def _nearest_neighbors_torch(source, target, batch_size=128, verbose=False):
 
     dev = torch.device("cuda")
     source = torch.from_numpy(source).to(dev)
+    target = torch.from_numpy(target).to(dev)
     indices = torch.zeros([len(source)], device=dev, dtype=torch.int64)
     distances = np.inf * torch.ones([len(source)], device=dev, dtype=source.dtype)
     target_indices = []
