@@ -117,5 +117,5 @@ def _nearest_neighbors_torch(source, target, batch_size=128, verbose=False):
         min_values = torch.min(distance_mat, dim=-1)
         indices = torch.where(min_values < distances, min_indices + i, indices)
         distances = torch.minimum(distances, min_values)
-        target_indices.append(torch.argmin(distance_mat, axis=0).cpu().numpy())
-    return indices.numpy(), np.concatenate(target_indices, axis=0)
+        target_indices.append(torch.argmin(distance_mat, dim=0).cpu().numpy())
+    return indices.cpu().numpy(), np.concatenate(target_indices, axis=0)
