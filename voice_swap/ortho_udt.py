@@ -100,10 +100,10 @@ def _nearest_neighbors_torch(source, target, batch_size=128, verbose=False):
     import torch
 
     dev = torch.device("cuda")
-    source = torch.from_numpy(source, dtype=torch.float32).to(dev)
-    target = torch.from_numpy(target, dtype=torch.float32).to(dev)
+    source = torch.from_numpy(source).to(torch.float32).to(dev)
+    target = torch.from_numpy(target).to(source)
     indices = torch.zeros([len(source)], device=dev, dtype=torch.int64)
-    distances = 1000000 * torch.ones([len(source)], device=dev, dtype=source.dtype)
+    distances = (torch.ones([len(source)]) * np.inf).to(source)
     target_indices = []
     batches = range(0, len(target), batch_size)
     if verbose:
