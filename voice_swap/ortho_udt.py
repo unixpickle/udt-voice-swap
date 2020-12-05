@@ -33,7 +33,7 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=Non
         use_sources = target_neighbors[source_neighbors] == np.arange(len(new_source))
 
         stats = {
-            "used": np.sum(use_sources),
+            "best_buddies": np.sum(use_sources),
             "uniq_targets": len(set(source_neighbors)),
             "uniq_sources": len(set(target_neighbors)),
         }
