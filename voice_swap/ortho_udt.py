@@ -32,6 +32,12 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=Non
 
         use_sources = target_neighbors[source_neighbors] == np.arange(len(new_source))
 
+        stats = {
+            "used": np.sum(use_sources),
+            "uniq_targets": len(set(source_neighbors)),
+            "uniq_sources": len(set(target_neighbors)),
+        }
+
         if no_cycle_check:
             source_vecs = np.concatenate([source, target], axis=0)
             target_vecs = np.concatenate(
@@ -41,18 +47,26 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=Non
             source_vecs = source[use_sources]
             target_vecs = target[source_neighbors[use_sources]]
 
+        stats["mse"] = np.mean((source_vecs - target_vecs) ** 2)
+
         u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
         new_solution = u @ vh
+
+        stats["identity_dist"] = np.mean(
+            (np.eye(len(new_solution)) - new_solution) ** 2
+        )
+
         num_iters += 1
+
         if verbose:
-            num_used = np.sum(use_sources)
-            uniq_targets = len(set(source_neighbors))
-            uniq_sources = len(set(target_neighbors))
             print(
-                f"iter {num_iters}: used={num_used} uniq_targets={uniq_targets} uniq_sources={uniq_sources}"
+                f"iter {num_iters}: "
+                + " ".join(f"{key}={value}" for key, value in stats.items())
             )
+
         if np.allclose(solution, new_solution) or num_iters == max_iters:
             break
+
         solution = new_solution
     return solution
 
