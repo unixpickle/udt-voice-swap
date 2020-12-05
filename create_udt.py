@@ -12,6 +12,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample_rate", type=int, default=22050)
     parser.add_argument("--num_chunks", type=int, default=20000)
+    parser.add_argument("--chunk_size", type=int, default=4096)
     parser.add_argument("--output_path", type=str, default="udt_rotation.npy")
     parser.add_argument("--no_cycle_check", action="store_true", default=False)
     parser.add_argument("--max_iters", type=int, default=50)
@@ -31,7 +32,7 @@ def main():
                 for _, transformed in audio_chunks_apply_pca(
                     tqdm(
                         ChunkDataset(
-                            data_dir, args.sample_rate, pca.shape[1], args.num_chunks
+                            data_dir, args.sample_rate, args.chunk_size, args.num_chunks
                         )
                     ),
                     pca,
