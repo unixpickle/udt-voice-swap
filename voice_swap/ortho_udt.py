@@ -32,9 +32,7 @@ def ortho_udt(
         new_source = source @ solution
         if verbose:
             print("Computing neighbors...")
-        source_neighbors, target_neighbors = neighbor_calc.neighbors(
-            new_source, target, verbose=verbose
-        )
+        source_neighbors, target_neighbors = neighbor_calc.neighbors(new_source, target)
 
         best_buddies = target_neighbors[source_neighbors] == np.arange(len(new_source))
 
