@@ -47,10 +47,10 @@ def main():
     np.savez(
         args.output_path,
         udt=full_matrix,
-        source_mean=source_ds[0]["mean"],
-        target_mean=target_ds[1]["mean"],
-        source_pca=source_ds[0]["pca"],
-        target_pca=target_ds[1]["pca"],
+        source_mean=source_ds["mean"],
+        target_mean=target_ds["mean"],
+        source_pca=source_ds["pca"],
+        target_pca=target_ds["pca"],
     )
 
 
