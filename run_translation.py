@@ -26,7 +26,7 @@ def main():
         raise ValueError("require more chunks than samples per chunk")
 
     source_ds, target_ds = [
-        process_dataset(dd) for dd in [args.source_data_dir, args.target_data_dir]
+        process_dataset(args, dd) for dd in [args.source_data_dir, args.target_data_dir]
     ]
 
     print("Applying PCA to source and target...")
