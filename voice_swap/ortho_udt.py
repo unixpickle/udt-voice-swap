@@ -8,7 +8,9 @@ import numpy as np
 from .neighbors import Neighbors
 
 
-def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=None):
+def ortho_udt(
+    source, target, verbose=False, no_cycle_check=False, max_iters=None, orthogonal=True
+):
     """
     Compute an orthogonal matrix that translates from a source domain to a
     target domain.
@@ -18,6 +20,8 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=Non
     :param verbose: if True, log information during optimization.
     :param no_cycle_check: if True, don't enforce cycle consistency.
     :param max_iters: if specified, the maximum iteration count.
+    :param orthogonal: if False, create an arbitrary matrix instead of an
+                       orthogonal one.
     :return: a [D x D] orthogonal matrix that takes vectors from the source
              and produces vectors from the target.
     """
@@ -51,8 +55,13 @@ def ortho_udt(source, target, verbose=False, no_cycle_check=False, max_iters=Non
 
         stats["mse"] = np.mean((source_vecs - target_vecs) ** 2)
 
-        u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
-        new_solution = u @ vh
+        if orthogonal:
+            u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
+            new_solution = u @ vh
+        else:
+            new_solution = (
+                np.linalg.inv(source_vecs.T @ source_vecs) @ source_vecs.T @ target_vecs
+            )
 
         stats["identity_dist"] = np.mean(
             (np.eye(len(new_solution)) - new_solution) ** 2

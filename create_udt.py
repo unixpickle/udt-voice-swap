@@ -15,6 +15,7 @@ def main():
     parser.add_argument("--chunk_size", type=int, default=4096)
     parser.add_argument("--output_path", type=str, default="udt_rotation.npy")
     parser.add_argument("--no_cycle_check", action="store_true", default=False)
+    parser.add_argument("--no_orthogonal", action="store_true", default=False)
     parser.add_argument("--max_iters", type=int, default=50)
     parser.add_argument("pca_1", type=str)
     parser.add_argument("data_dir_1", type=str)
@@ -49,6 +50,7 @@ def main():
         verbose=True,
         no_cycle_check=args.no_cycle_check,
         max_iters=args.max_iters,
+        orthogonal=not args.no_orthogonal,
     )
 
     print("Saving full matrix...")
