@@ -60,7 +60,7 @@ def process_dataset(args, data_dir):
         list(
             tqdm(
                 ChunkDataset(
-                    args.data_dir, args.sample_rate, args.chunk_size, args.num_chunks,
+                    data_dir, args.sample_rate, args.chunk_size, args.num_chunks,
                 )
             )
         )
