@@ -13,8 +13,8 @@ def audio_chunk_pca(chunks, num_vecs):
     cov = OuterMean()
     for chunk in chunks:
         cov.add(chunk)
-    u, sigma, _ = np.linalg.svd(cov.mean())
-    return u.T[:num_vecs] / np.sqrt(sigma[:num_vecs, None])
+    u, _, _ = np.linalg.svd(cov.mean())
+    return u.T[:num_vecs]
 
 
 def audio_chunk_pca_fix_skew(chunks, pca_vecs):
