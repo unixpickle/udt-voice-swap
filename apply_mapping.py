@@ -29,7 +29,7 @@ def main():
             chunk = reader.read(args.chunk_size)
             chunk -= model["source_mean"]
             chunk_out = (chunk[None] @ model["udt"]).flatten()
-            chunk += model["target_mean"]
+            chunk_out += model["target_mean"]
             writer.write(chunk_out)
     finally:
         reader.close()
