@@ -28,9 +28,7 @@ def main():
     source_ds, target_ds = [
         process_dataset(args, dd) for dd in [args.source_data_dir, args.target_data_dir]
     ]
-
-    print("Applying PCA to source and target...")
-    source, target = [ds["data"] @ ds["pca"].T for ds in tqdm([source_ds, target_ds])]
+    source, target = [ds["pca_data"] for ds in tqdm([source_ds, target_ds])]
 
     print("Performing orthogonal UDT...")
     matrix = ortho_udt(
@@ -60,7 +58,7 @@ def process_dataset(args, data_dir):
         list(
             tqdm(
                 ChunkDataset(
-                    data_dir, args.sample_rate, args.chunk_size, args.num_chunks,
+                    data_dir, args.sample_rate, args.chunk_size, args.num_chunks
                 )
             )
         )
@@ -78,7 +76,10 @@ def process_dataset(args, data_dir):
     mse = audio_pca.audio_chunk_pca_mse(tqdm(data), pca_vecs)
     print(f"MSE: {mse}")
 
-    return {"data": data, "pca": pca_vecs, "mean": mean}
+    print("Applying PCA...")
+    pca_data = data @ pca_vecs.T
+
+    return {"pca_data": pca_data, "pca": pca_vecs, "mean": mean}
 
 
 if __name__ == "__main__":
