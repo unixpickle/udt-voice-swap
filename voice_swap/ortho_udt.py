@@ -72,13 +72,29 @@ def ortho_udt(
         num_iters += 1
 
         if verbose:
-            print(
-                f"iter {num_iters}: "
-                + " ".join(f"{key}={value}" for key, value in stats.items())
-            )
+            stats["iter"] = num_iters
+            display_dict(stats)
 
         if np.allclose(solution, new_solution) or num_iters == max_iters:
             break
 
         solution = new_solution
     return solution
+
+
+def display_dict(d):
+    key_length = max(len(x) for x in d.keys())
+    value_length = max(len(f"{x}") for x in d.values())
+    print("-" * (key_length + value_length + 7))
+    for key, value in d.items():
+        pad_key = pad_spaces(key, key_length)
+        pad_value = pad_spaces(value, value_length)
+        print(f"| {pad_key} | {pad_value} |")
+    print("-" * (key_length + value_length + 7))
+
+
+def pad_spaces(value, length):
+    res = f"{value}"
+    while len(res) < length:
+        res += " "
+    return res
