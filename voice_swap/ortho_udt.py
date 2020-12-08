@@ -42,16 +42,20 @@ def ortho_udt(
             "uniq_sources": len(set(target_neighbors)),
         }
 
-        if no_cycle_check:
-            source_vecs = np.concatenate([source, target], axis=0)
-            target_vecs = np.concatenate(
-                [target[source_neighbors], source[target_neighbors]], axis=0
-            )
-        else:
-            source_vecs = source[best_buddies]
-            target_vecs = target[source_neighbors[best_buddies]]
+        all_source_vecs = np.concatenate([source, target], axis=0)
+        all_target_vecs = np.concatenate(
+            [target[source_neighbors], source[target_neighbors]], axis=0
+        )
+        stats["all_mse"] = np.mean((all_source_vecs - all_target_vecs) ** 2)
 
-        stats["mse"] = np.mean((source_vecs - target_vecs) ** 2)
+        bb_source_vecs = source[best_buddies]
+        bb_target_vecs = target[source_neighbors[best_buddies]]
+        stats["bb_mse"] = np.mean((bb_source_vecs - bb_target_vecs) ** 2)
+
+        if no_cycle_check:
+            source_vecs, target_vecs = all_source_vecs, all_target_vecs
+        else:
+            source_vecs, target_vecs = bb_source_vecs, bb_target_vecs
 
         if orthogonal:
             u, _, vh = np.linalg.svd(source_vecs.T @ target_vecs)
