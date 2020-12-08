@@ -28,9 +28,9 @@ def main():
         for _ in tqdm(range(args.num_chunks)):
             chunk = reader.read(args.chunk_size)
             chunk -= model["source_mean"]
-            chunk_out = (chunk[None] @ model["udt"]).flatten()
-            chunk_out += model["target_mean"]
-            writer.write(chunk_out)
+            chunk = (chunk[None] @ model["udt"]).flatten()
+            chunk += model["target_mean"]
+            writer.write(chunk)
     finally:
         reader.close()
         writer.close()
