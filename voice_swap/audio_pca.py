@@ -17,76 +17,56 @@ def audio_chunk_pca(chunks, num_vecs):
     return u.T[:num_vecs]
 
 
-def audio_chunk_pca_fix_skew(chunks, pca_vecs):
+def audio_chunk_pca_fix_skew(pca_chunks, pca_vecs):
     """
-    Adjust the sign of any PCA vectors wich negative skew.
+    Adjust the sign of any PCA vectors with negative skew in place.
 
-    :param chunks: an iterator (with a length) over audio chunks.
+    Automatically modifies the columns of pca_chunks and the rows of pca_vecs
+    to give every principal component positive skew.
+
+    :param pca_chunks: an [B x N] array of audio chunks in PCA space.
     :param pca_vecs: an [N x D] array of PCA vectors.
-    :return: a new [N x D] array of PCA vectors.
     """
-    it = iter(chunks)
-
-    # Compute the mean using the first half of the data.
-    mean_count = len(chunks) // 2
-    dot_sum = None
-    for i in range(mean_count):
-        chunk = next(it)
-        local_dots = (pca_vecs @ chunk[:, None]).flatten()
-        if dot_sum is None:
-            dot_sum = local_dots
-        else:
-            dot_sum += local_dots
-    dot_mean = dot_sum / mean_count
-
-    # Now that we have a mean, we can compute the skew efficiently.
-    skewness = np.zeros_like(dot_sum)
-    for chunk in it:
-        skewness += ((pca_vecs @ chunk[:, None]).flatten() - dot_mean) ** 3
-
-    return np.where((skewness > 0)[:, None], pca_vecs, -pca_vecs)
+    mean = np.mean(pca_chunks, axis=0)
+    skewness = np.mean((pca_chunks - mean) ** 3, axis=0)
+    sign_flips = (skewness > 0).astype(pca_chunks.dtype) * 2 - 1
+    pca_vecs *= sign_flips[:, None]
+    pca_chunks *= sign_flips
 
 
-def audio_chunk_pca_mse(chunks, pca_vecs):
+def audio_chunk_pca_mse(chunks, pca_vecs, batch_size=128):
     """
-    Compute the MSE of the PCA-compressed chunks.
+    Compute the MSE of chunks after they have been compressed with PCA.
+    This operation never explicitly allocates an encoded and decoded array of
+    chunks, but rather performs the computation in batches.
 
     :param chunks: an iterator over audio chunks.
     :param pca_vecs: an [N x D] array of PCA vectors.
+    :param batch_size: the number of chunks per batch, to avoid using too much
+                       memory.
     :return: an MSE estimate, averaged over dimensions and chunks.
     """
-    pca_vecs = pca_vecs / np.sqrt(np.sum(pca_vecs ** 2, axis=-1, keepdims=True))
-    total_mse = 0.0
-    count = 0.0
-    for chunk in chunks:
-        proj = (pca_vecs.T @ (pca_vecs @ chunk[:, None])).flatten()
-        total_mse += float(np.mean((proj - chunk) ** 2))
-        count += 1.0
-    return total_mse / count
-
-
-def audio_chunks_apply_pca(chunks, pca_vecs, batch_size=128):
-    """
-    Iterate over transformed audio chunks as (chunk, pca_chunk).
-
-    Automatically batches matrix operations for faster computation.
-    """
-    batch = np.zeros([batch_size, pca_vecs.shape[1]], dtype=pca_vecs.dtype)
-    batch_idx = 0
+    # Stored in lists to be mutable from nested function.
+    total_mse = [0.0]
+    count = [0.0]
 
     def flush_batch(batch):
         if len(batch):
-            transformed = batch @ pca_vecs.T
-            yield from zip(batch, transformed)
+            proj = (batch @ pca_vecs.T) @ pca_vecs
+            total_mse[0] += np.sum(np.mean((proj - batch) ** 2, axis=-1))
+            count[0] += batch.shape[0]
 
+    batch = np.zeros([batch_size, pca_vecs.shape[1]], dtype=pca_vecs.dtype)
+    batch_idx = 0
     for chunk in chunks:
         batch[batch_idx] = chunk
         batch_idx += 1
         if batch_idx == len(batch):
-            yield from flush_batch(batch)
+            flush_batch(batch)
             batch_idx = 0
+    flush_batch(batch[:batch_idx])
 
-    yield from flush_batch(batch[:batch_idx])
+    return total_mse[0] / count[0]
 
 
 class OuterMean:

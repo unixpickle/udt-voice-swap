@@ -69,15 +69,13 @@ def process_dataset(args, data_dir):
     print(f"Computing PCA for {data_dir}...")
     pca_vecs = audio_pca.audio_chunk_pca(tqdm(data), args.pca_dim)
 
-    print("Fixing skew...")
-    pca_vecs = audio_pca.audio_chunk_pca_fix_skew(tqdm(data), pca_vecs)
-
     print("Computing MSE...")
     mse = audio_pca.audio_chunk_pca_mse(tqdm(data), pca_vecs)
     print(f"MSE: {mse}")
 
-    print("Applying PCA...")
+    print("Fixing skew...")
     pca_data = data @ pca_vecs.T
+    audio_pca.audio_chunk_pca_fix_skew(pca_data, pca_vecs)
 
     return {"pca_data": pca_data, "pca": pca_vecs, "mean": mean}
 
