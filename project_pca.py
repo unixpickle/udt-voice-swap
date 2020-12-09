@@ -11,6 +11,7 @@ def main():
     parser.add_argument("--sample_rate", type=int, default=22050)
     parser.add_argument("--num_chunks", type=int, default=50)
     parser.add_argument("--chunk_size", type=int, default=4096)
+    parser.add_argument("--use_target", action="store_true")
     parser.add_argument("model_file", type=str)
     parser.add_argument("input_file", type=str)
     parser.add_argument("output_file", type=str)
@@ -23,14 +24,18 @@ def main():
     reader = MFCCReader(args.input_file, args.sample_rate)
     writer = MFCCWriter(args.output_file, args.sample_rate)
 
-    print("Translating...")
+    prefix = "target" if args.use_target else "source"
+    pca_vecs = model[f"{prefix}_pca"]
+    pca_mean = model[f"{prefix}_mean"]
+
+    print("Projecting...")
     try:
         for _ in tqdm(range(args.num_chunks)):
             chunk = reader.read(args.chunk_size)
-            chunk -= model["source_mean"]
-            chunk_out = (chunk[None] @ model["udt"]).flatten()
-            chunk_out += model["target_mean"]
-            writer.write(chunk_out)
+            chunk -= pca_mean
+            chunk = (chunk[None] @ pca_vecs.T @ pca_vecs).flatten()
+            chunk += pca_mean
+            writer.write(chunk)
     finally:
         reader.close()
         writer.close()
