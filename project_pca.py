@@ -12,6 +12,7 @@ def main():
     parser.add_argument("--num_chunks", type=int, default=50)
     parser.add_argument("--chunk_size", type=int, default=4096)
     parser.add_argument("--use_target", action="store_true")
+    parser.add_argument("--no_pca", action="store_true")
     parser.add_argument("model_file", type=str)
     parser.add_argument("input_file", type=str)
     parser.add_argument("output_file", type=str)
@@ -32,9 +33,10 @@ def main():
     try:
         for _ in tqdm(range(args.num_chunks)):
             chunk = reader.read(args.chunk_size)
-            chunk -= pca_mean
-            chunk = (chunk[None] @ pca_vecs.T @ pca_vecs).flatten()
-            chunk += pca_mean
+            if not args.no_pca:
+                chunk -= pca_mean
+                chunk = (chunk[None] @ pca_vecs.T @ pca_vecs).flatten()
+                chunk += pca_mean
             writer.write(chunk)
     finally:
         reader.close()
